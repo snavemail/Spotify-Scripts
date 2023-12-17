@@ -3,14 +3,12 @@ class Song:
         self,
         title: str,
         artist: str,
-        album: str,
         explicit: bool,
         mins: int,
         seconds: int,
     ):
         self.title = title
         self.artist = artist
-        self.album = album
         self.explicit = explicit
         self.mins = mins
         self.seconds = seconds
@@ -19,10 +17,9 @@ class Song:
         return (
             self.title == other.title
             and self.artist == other.artist
-            and self.album == other.album
             and self.mins == other.mins
             and self.seconds == other.seconds
         )
 
     def __repr__(self):
-        return f"{self.title} sung by {self.artist} in {self.album} is {'not' if self.explicit else ''} explicit and is {self.mins} minutes and {self.seconds} seconds long"
+        return f"{self.title} sung by {self.artist} is{' ' if self.explicit else ' not '}explicit and is {self.mins} minutes and {self.seconds} seconds long"
