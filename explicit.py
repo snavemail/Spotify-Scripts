@@ -71,6 +71,13 @@ def enter_credentials():
 
 
 def get_liked_page():
+    """
+    Goes to liked page
+    Since the left sidebar seems to be open always, it looks like I can call this
+    from anywhere in the code to get back to liked songs
+
+    Could also be used easily to get to 2020's folder for other script
+    """
     try:
         buttons = WebDriverWait(driver, 3).until(
             EC.presence_of_all_elements_located((By.CLASS_NAME, "hIehTT"))
@@ -81,14 +88,11 @@ def get_liked_page():
         driver.quit()
 
 
-"""
-Get song, make Song class, add to list
-Find search button
-search song title and song 
-"""
-
-
 def get_liked_song(index: int):
+    """
+    Given an index 0-based?, finds a song in the liked_songs_page
+    Maybe I should call that here before trying anything else
+    """
     try:
         song = WebDriverWait(driver, 3).until(
             EC.presence_of_element_located(
@@ -124,6 +128,10 @@ def get_liked_song(index: int):
 
 
 def check_for_explicit(censored_song: Song):
+    """
+    Given a song, it will go into the search bar and search for explicit songs
+    Should be able to be called from anywhere
+    """
     if not censored_song.explicit:
         try:
             search_button = WebDriverWait(driver, 3).until(
