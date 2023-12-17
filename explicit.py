@@ -101,7 +101,6 @@ def get_liked_song(index: int):
         except:
             song_explicit = False
             song_artist = song.find_element(By.XPATH, "./div[2]/div/span/div/a").text
-        song_album = song.find_element(By.XPATH, "./div[3]/span/span/a").text
         song_mins, song_seconds = song.find_element(
             By.XPATH, "./div[5]/div"
         ).text.split(":")
@@ -110,7 +109,6 @@ def get_liked_song(index: int):
         song = Song(
             title=song_title,
             artist=song_artist,
-            album=song_album,
             explicit=song_explicit,
             mins=song_mins,
             seconds=song_seconds,
@@ -118,6 +116,72 @@ def get_liked_song(index: int):
         return song
     except:
         driver.quit()
+
+
+def check_for_explicit(censored_song: Song):
+    if not censored_song.explicit:
+        try:
+            search_button = WebDriverWait(driver, 3).until(
+                EC.presence_of_all_elements_located(
+                    (By.CLASS_NAME, "UYeKN11KAw61rZoyjcgZ")
+                )
+            )[1]
+            search_button.click()
+            try:
+                search_bar = WebDriverWait(driver, 3).until(
+                    EC.presence_of_element_located(
+                        (By.CLASS_NAME, "QO9loc33XC50mMRUCIvf")
+                    )
+                )
+                search_bar.send_keys(f"{censored_song.title} {censored_song.artist}")
+
+                searched_songs = WebDriverWait(driver, 3).until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            "//*[@id='searchPage']/div/div/section[2]/div[2]/div/div/div/div[2]",
+                        )
+                    )
+                )
+                for i in range(4):
+                    searched_song = searched_songs.find_element(
+                        By.XPATH, f"./div[{i + 1}]"
+                    )
+                    try:
+                        searched_song.find_element(
+                            By.XPATH, "./div/div[1]/div[2]/span[1]/span"
+                        )
+                        song_explicit = True
+                    except:
+                        song_explicit = False
+                    if song_explicit:
+                        song_title = searched_song.find_element(
+                            By.XPATH, "./div/div[1]/div[2]/a/div"
+                        ).text
+                        song_artist = searched_song.find_element(
+                            By.XPATH, "./div/div[1]/div[2]/span[2]/span/a"
+                        ).text
+                        song_mins, song_seconds = searched_song.find_element(
+                            By.XPATH, "./div/div[2]/div"
+                        ).text.split(":")
+                        song_mins = int(song_mins)
+                        song_seconds = int(song_seconds)
+                        explicit_song = Song(
+                            title=song_title,
+                            artist=song_artist,
+                            explicit=song_explicit,
+                            mins=song_mins,
+                            seconds=song_seconds,
+                        )
+                        if censored_song == explicit_song:
+                            return explicit_song
+                return None
+            except:
+                driver.quit()
+        except:
+            driver.quit()
+    else:
+        return None
 
 
 # body = driver.find_element(
@@ -132,12 +196,12 @@ def get_liked_song(index: int):
 def main():
     print(date.today())
     driver.get(SPOTIFY)
-    driver.fullscreen_window()
     get_login_page()
     enter_credentials()
     get_liked_page()
     time.sleep(4)
-    print(get_liked_song(2))
+    song = get_liked_song(12)
+    check_for_explicit(song)
 
 
 if __name__ == "__main__":
