@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from dotenv import load_dotenv
 from song import Song
@@ -89,9 +90,13 @@ search song title and song
 
 def get_liked_song(index: int):
     try:
-        song = driver.find_element(
-            By.XPATH,
-            f'//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/main/section/div[4]/div/div[2]/div[2]/div[{index + 1}]/div',
+        song = WebDriverWait(driver, 3).until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    f'//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/main/section/div[4]/div/div[2]/div[2]/div[{index + 1}]/div',
+                )
+            )
         )
         song_title = song.find_element(By.XPATH, "./div[2]/div/a/div").text
         try:
@@ -174,6 +179,9 @@ def check_for_explicit(censored_song: Song):
                             seconds=song_seconds,
                         )
                         if censored_song == explicit_song:
+                            # Right click the searched_song
+                            actions = ActionChains(driver)
+                            actions.context_click(searched_song).perform()
                             return explicit_song
                 return None
             except:
@@ -199,9 +207,9 @@ def main():
     get_login_page()
     enter_credentials()
     get_liked_page()
-    time.sleep(4)
     song = get_liked_song(12)
-    check_for_explicit(song)
+    e = check_for_explicit(song)
+    print("es", e)
 
 
 if __name__ == "__main__":
