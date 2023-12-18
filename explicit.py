@@ -24,7 +24,7 @@ SPOTIFY_PASSWORD = os.getenv("SPOTIFY-PASSWORD")
 
 CLEAN_PLAYLIST = "Clean Songs"
 EXPLICIT_PLAYLIST = "Explicit Songs"
-CLEAN_EXPLICIT_PLAYLIST = "Clean and Explicit Songs"
+CLEAN_EXPLICIT_PLAYLIST = "C + E Songs"
 
 service = ChromeService(executable_path=CHROME_DRIVER_PATH)
 driver = webdriver.Chrome(service=service, options=options)
@@ -35,7 +35,7 @@ def get_login_page():
     Enters login page from spotify main page
     """
     try:
-        login_button = WebDriverWait(driver, 10).until(
+        login_button = WebDriverWait(driver, 100).until(
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
@@ -53,16 +53,16 @@ def enter_credentials():
     Enters email and password anad click login button
     """
     try:
-        email_text_box = WebDriverWait(driver, 10).until(
+        email_text_box = WebDriverWait(driver, 100).until(
             EC.presence_of_element_located((By.ID, "login-username"))
         )
         email_text_box.send_keys(SPOTIFY_EMAIL)
-        password_text_box = WebDriverWait(driver, 10).until(
+        password_text_box = WebDriverWait(driver, 100).until(
             EC.presence_of_element_located((By.ID, "login-password"))
         )
         password_text_box.send_keys(SPOTIFY_PASSWORD)
 
-        login_button = WebDriverWait(driver, 10).until(
+        login_button = WebDriverWait(driver, 100).until(
             EC.element_to_be_clickable((By.ID, "login-button"))
         )
         login_button.click()
@@ -79,7 +79,7 @@ def get_liked_page():
     Could also be used easily to get to 2020's folder for other script
     """
     try:
-        buttons = WebDriverWait(driver, 10).until(
+        buttons = WebDriverWait(driver, 100).until(
             EC.presence_of_all_elements_located((By.CLASS_NAME, "hIehTT"))
         )
         liked_songs_button = buttons[0]
@@ -94,7 +94,7 @@ def get_liked_song(index: int):
     Maybe I should call that here before trying anything else
     """
     try:
-        song = WebDriverWait(driver, 5).until(
+        song = WebDriverWait(driver, 100).until(
             EC.presence_of_element_located(
                 (
                     By.XPATH,
@@ -134,21 +134,21 @@ def check_for_explicit(censored_song: Song):
     """
     if not censored_song.explicit:
         try:
-            search_button = WebDriverWait(driver, 10).until(
+            search_button = WebDriverWait(driver, 100).until(
                 EC.presence_of_all_elements_located(
                     (By.CLASS_NAME, "UYeKN11KAw61rZoyjcgZ")
                 )
             )[1]
             search_button.click()
             try:
-                search_bar = WebDriverWait(driver, 10).until(
+                search_bar = WebDriverWait(driver, 100).until(
                     EC.presence_of_element_located(
                         (By.CLASS_NAME, "QO9loc33XC50mMRUCIvf")
                     )
                 )
                 search_bar.send_keys(f"{censored_song.title} {censored_song.artist}")
 
-                searched_songs = WebDriverWait(driver, 10).until(
+                searched_songs = WebDriverWait(driver, 100).until(
                     EC.presence_of_element_located(
                         (
                             By.XPATH,
@@ -156,9 +156,9 @@ def check_for_explicit(censored_song: Song):
                         )
                     )
                 )
-                for i in range(4):
+                for j in range(4):
                     searched_song = searched_songs.find_element(
-                        By.XPATH, f"./div[{i + 1}]"
+                        By.XPATH, f"./div[{j + 1}]"
                     )
                     try:
                         searched_song.find_element(
@@ -188,42 +188,51 @@ def check_for_explicit(censored_song: Song):
                         )
                         if censored_song == explicit_song:
                             # Right click the searched_song
-                            actions = ActionChains(driver)
-                            actions.context_click(searched_song).perform()
-                            try:
-                                add_to_playlist_button = WebDriverWait(
-                                    driver, 10
-                                ).until(
-                                    EC.presence_of_element_located(
-                                        (By.CLASS_NAME, "wC9sIed7pfp47wZbmU6m")
-                                    )
-                                )
-                                add_to_playlist_button.click()
-                            except:
-                                driver.quit()
-                            try:
-                                find_playlist = WebDriverWait(driver, 10).until(
-                                    EC.presence_of_all_elements_located(
-                                        (By.CLASS_NAME, "QZhV0hWVKlExlKr266jo")
-                                    )
-                                )[1]
-                                find_playlist.click()
-                            except:
-                                driver.quit()
-                            try:
-                                playlist_button = WebDriverWait(driver, 10).until(
-                                    EC.presence_of_all_elements_located(
-                                        (
-                                            By.CLASS_NAME,
-                                            "wC9sIed7pfp47wZbmU6m",
+                            for playlist in [
+                                CLEAN_EXPLICIT_PLAYLIST,
+                                EXPLICIT_PLAYLIST,
+                            ]:
+                                actions = ActionChains(driver)
+                                actions.context_click(searched_song).perform()
+                                try:
+                                    add_to_playlist_button = WebDriverWait(
+                                        driver, 100
+                                    ).until(
+                                        EC.element_to_be_clickable(
+                                            (By.CLASS_NAME, "wC9sIed7pfp47wZbmU6m")
                                         )
                                     )
-                                )[2]
-                                playlist_button.click()
-                            except:
-                                print("quitting")
-                                driver.quit()
+                                    add_to_playlist_button.click()
+                                except:
+                                    driver.quit()
+                                try:
+                                    find_playlist = WebDriverWait(driver, 100).until(
+                                        EC.presence_of_all_elements_located(
+                                            (By.CLASS_NAME, "QZhV0hWVKlExlKr266jo")
+                                        )
+                                    )[1]
+                                    find_playlist.clear()
+                                    time.sleep(1)
+                                    find_playlist.send_keys(playlist)
+                                except:
+                                    driver.quit()
+                                try:
+                                    playlist_button = WebDriverWait(driver, 100).until(
+                                        EC.element_to_be_clickable(
+                                            (
+                                                By.XPATH,
+                                                "/html/body/div[23]/div/ul/li[1]/div/ul/div/li[3]/button",
+                                            )
+                                        )
+                                    )
+                                    time.sleep(1)
+                                    playlist_button.click()
+                                except:
+                                    print("quitting")
+                                    driver.quit()
+                            go_back()
                             return explicit_song
+                go_back()
                 return None
             except:
                 driver.quit()
@@ -233,24 +242,43 @@ def check_for_explicit(censored_song: Song):
         return None
 
 
-# body = driver.find_element(
-#     By.XPATH,
-#     "//*[@id='main']/div/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/main/section/div[4]/div",
-# )
-# songs = []
-# scroll_count = 15  # Adjust the number of scrolls as needed
-# body.send_keys(Keys.ARROW_DOWN)
+def go_back():
+    try:
+        back_button = WebDriverWait(driver, 100).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, "ql0zZd7giPXSnPg75NR0"))
+        )
+        back_button.click()
+    except:
+        driver.quit()
+
+
+def check_all_songs():
+    try:
+        body = WebDriverWait(driver, 100).until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    "//*[@id='main']/div/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/main/section/div[4]/div",
+                )
+            )
+        )
+    except:
+        driver.quit()
+    scroll_count = 15  # Adjust the number of scrolls as needed
+    for i in range(scroll_count):
+        liked_song = get_liked_song(i)
+        explict = check_for_explicit(liked_song)
+        body.send_keys(Keys.ARROW_DOWN)
 
 
 def main():
-    print(date.today())
     driver.get(SPOTIFY)
     get_login_page()
     enter_credentials()
     get_liked_page()
-    song = get_liked_song(12)
-    e = check_for_explicit(song)
-    print("es", e)
+    # check_all_songs()
+    liked_song = get_liked_song(12)
+    check_for_explicit(liked_song)
 
 
 if __name__ == "__main__":
