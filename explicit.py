@@ -156,17 +156,28 @@ def check_for_explicit(censored_song: Song):
                         )
                     )
                 )
+                print("before for loop through j")
                 for j in range(4):
+                    print("j:", j)
                     searched_song = searched_songs.find_element(
                         By.XPATH, f"./div[{j + 1}]"
                     )
+                    print("before try find E tag")
                     try:
-                        searched_song.find_element(
+                        e_tag = searched_song.find_element(
                             By.XPATH, "./div/div[1]/div[2]/span[1]/span"
                         )
-                        song_explicit = True
+                        if e_tag.text == "E":
+                            print("song explicit", j)
+                            song_explicit = True
+                        else:
+                            print("song not explict within else statement:", j)
+                            song_explicit = False
+
                     except:
+                        print("song not explict:", j)
                         song_explicit = False
+                    print("before if song_explicit")
                     if song_explicit:
                         song_title = searched_song.find_element(
                             By.XPATH, "./div/div[1]/div[2]/a/div"
@@ -188,55 +199,52 @@ def check_for_explicit(censored_song: Song):
                         )
                         if censored_song == explicit_song:
                             # Right click the searched_song
-                            for playlist in [
-                                CLEAN_EXPLICIT_PLAYLIST,
-                                EXPLICIT_PLAYLIST,
-                            ]:
-                                actions = ActionChains(driver)
-                                actions.context_click(searched_song).perform()
-                                try:
-                                    add_to_playlist_button = WebDriverWait(
-                                        driver, 100
-                                    ).until(
-                                        EC.element_to_be_clickable(
-                                            (By.CLASS_NAME, "wC9sIed7pfp47wZbmU6m")
+                            actions = ActionChains(driver)
+                            actions.context_click(searched_song).perform()
+                            try:
+                                add_to_playlist_button = WebDriverWait(
+                                    driver, 100
+                                ).until(
+                                    EC.element_to_be_clickable(
+                                        (By.CLASS_NAME, "wC9sIed7pfp47wZbmU6m")
+                                    )
+                                )
+                                add_to_playlist_button.click()
+                            except:
+                                print("failed finding add_to_playlist")
+                            try:
+                                find_playlist = WebDriverWait(driver, 100).until(
+                                    EC.presence_of_all_elements_located(
+                                        (By.CLASS_NAME, "QZhV0hWVKlExlKr266jo")
+                                    )
+                                )[1]
+                                find_playlist.clear()
+                                time.sleep(4)
+                                find_playlist.send_keys(EXPLICIT_PLAYLIST)
+                            except:
+                                print("failed finding find_playlist")
+                            try:
+                                playlist_button = WebDriverWait(driver, 100).until(
+                                    EC.presence_of_element_located(
+                                        (
+                                            By.XPATH,
+                                            "/html/body/div[23]/div/ul/li[1]/div/ul/div/li[3]/button",
                                         )
                                     )
-                                    add_to_playlist_button.click()
-                                except:
-                                    driver.quit()
-                                try:
-                                    find_playlist = WebDriverWait(driver, 100).until(
-                                        EC.presence_of_all_elements_located(
-                                            (By.CLASS_NAME, "QZhV0hWVKlExlKr266jo")
-                                        )
-                                    )[1]
-                                    find_playlist.clear()
-                                    time.sleep(1)
-                                    find_playlist.send_keys(playlist)
-                                except:
-                                    driver.quit()
-                                try:
-                                    playlist_button = WebDriverWait(driver, 100).until(
-                                        EC.element_to_be_clickable(
-                                            (
-                                                By.XPATH,
-                                                "/html/body/div[23]/div/ul/li[1]/div/ul/div/li[3]/button",
-                                            )
-                                        )
-                                    )
-                                    time.sleep(1)
-                                    playlist_button.click()
-                                except:
-                                    print("quitting")
-                                    driver.quit()
-                            go_back()
-                            return explicit_song
+                                )
+                                playlist_button.click()
+                            except:
+                                print("failed finding playlist_button")
+                        go_back()
+                        return explicit_song
+                    print("outside if statement")
+                print("go back none are explicit")
                 go_back()
                 return None
             except:
-                driver.quit()
+                print("q1")
         except:
+            print("q2")
             driver.quit()
     else:
         return None
@@ -277,7 +285,7 @@ def main():
     enter_credentials()
     get_liked_page()
     # check_all_songs()
-    liked_song = get_liked_song(12)
+    liked_song = get_liked_song(1)
     check_for_explicit(liked_song)
 
 
